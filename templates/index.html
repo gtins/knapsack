@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knapsack Problem Solver</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --accent: #4fc1e9;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .input-section, .output-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        tr.selected {
+            background-color: rgba(79, 193, 233, 0.2);
+        }
+        
+        .result {
+            padding: 15px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .explanation {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        
+        .loading:after {
+            content: " .";
+            animation: dots 1s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: " ."; }
+            40% { content: " .."; }
+            60% { content: " ..."; }
+            80%, 100% { content: " ...."; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Knapsack Problem Solver</h1>
+        
+        <div class="explanation">
+            <h3>About the Knapsack Problem</h3>
+            <p>The knapsack problem is a classic optimization problem: given a set of items, each with a weight and value, determine which items to include in a collection so that the total weight is less than or equal to a given limit and the total value is as large as possible.</p>
+            <p>This solver uses a recursive approach with memoization to efficiently find the optimal solution.</p>
+        </div>
+        
+        <div class="input-section">
+            <h2>Input</h2>
+            
+            <div class="form-group">
+                <label for="capacity">Maximum Weight Capacity:</label>
+                <input type="number" id="capacity" min="1" value="10">
+            </div>
+            
+            <h3>Items</h3>
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Weight</th>
+                        <th>Value</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="items-body">
+                    <tr>
+                        <td>Item 1</td>
+                        <td><input type="number" class="weight" min="1" value="1"></td>
+                        <td><input type="number" class="value" min="1" value="6"></td>
+                        <td><button class="remove-btn">Remove</button></td>
+                    </tr>
+                    <tr>
+                        <td>Item 2</td>
+                        <td><input type="number" class="weight" min="1" value="2"></td>
+                        <td><input type="number" class="value" min="1" value="10"></td>
+                        <td><button class="remove-btn">Remove</button></td>
+                    </tr>
+                    <tr>
+                        <td>Item 3</td>
+                        <td><input type="number" class="weight" min="1" value="3"></td>
+                        <td><input type="number" class="value" min="1" value="12"></td>
+                        <td><button class="remove-btn">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <button id="add-item" style="margin-top: 10px;">+ Add Item</button>
+            <button id="solve-btn" style="margin-top: 20px; background-color: var(--accent);">Solve Knapsack Problem</button>
+            
+            <div class="loading" id="loading">Calculating optimal solution</div>
+        </div>
+        
+        <div class="output-section" id="output-section" style="display: none;">
+            <h2>Solution</h2>
+            
+            <div class="result" id="result">
+                <h3>Optimal Solution:</h3>
+                <p>Maximum value: <span id="max-value">0</span></p>
+                <p>Total weight: <span id="total-weight">0</span></p>
+            </div>
+            
+            <h3>Items Selection:</h3>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Weight</th>
+                        <th>Value</th>
+                        <th>Selected</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add item button
+            document.getElementById('add-item').addEventListener('click', function() {
+                const tbody = document.getElementById('items-body');
+                const rowCount = tbody.children.length;
+                const newRow = document.createElement('tr');
+                
+                newRow.innerHTML = `
+                    <td>Item ${rowCount + 1}</td>
+                    <td><input type="number" class="weight" min="1" value="1"></td>
+                    <td><input type="number" class="value" min="1" value="1"></td>
+                    <td><button class="remove-btn">Remove</button></td>
+                `;
+                
+                tbody.appendChild(newRow);
+                
+                // Add event listener to new remove button
+                newRow.querySelector('.remove-btn').addEventListener('click', function() {
+                    tbody.removeChild(newRow);
+                    updateItemNumbers();
+                });
+            });
+            
+            // Add event listeners to initial remove buttons
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const row = button.closest('tr');
+                    row.parentNode.removeChild(row);
+                    updateItemNumbers();
+                });
+            });
+            
+            // Function to update item numbers
+            function updateItemNumbers() {
+                const rows = document.getElementById('items-body').children;
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].cells[0].textContent = `Item ${i + 1}`;
+                }
+            }
+            
+            // Solve button
+            document.getElementById('solve-btn').addEventListener('click', solveKnapsack);
+            
+            function solveKnapsack() {
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('output-section').style.display = 'none';
+            
+            // Get capacity
+            const capacity = parseInt(document.getElementById('capacity').value);
+            
+            // Get items
+            const items = [];
+            const rows = document.getElementById('items-body').children;
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.cells[0].textContent;
+                const weight = parseInt(row.querySelector('.weight').value);
+                const value = parseInt(row.querySelector('.value').value);
+                
+                items.push({
+                    name,
+                    weight,
+                    value
+                });
+            }
+            
+            // Make the actual API call to our Flask backend
+            fetch('/solve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    items: items,
+                    capacity: capacity,
+                    strategy: 'recursive'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults(items, data);
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('output-section').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while solving the knapsack problem.');
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
+            
+            function simulateSolve(items, capacity) {
+                // This is a demo implementation - in reality, this would be handled by our backend
+                // Dynamic programming approach for demo
+                const n = items.length;
+                const dp = Array(n + 1).fill().map(() => Array(capacity + 1).fill(0));
+                
+                for (let i = 1; i <= n; i++) {
+                    for (let w = 0; w <= capacity; w++) {
+                        if (items[i-1].weight <= w) {
+                            dp[i][w] = Math.max(
+                                items[i-1].value + dp[i-1][w - items[i-1].weight],
+                                dp[i-1][w]
+                            );
+                        } else {
+                            dp[i][w] = dp[i-1][w];
+                        }
+                    }
+                }
+                
+                // Backtrack to find items
+                let w = capacity;
+                const selectedItems = [];
+                for (let i = n; i > 0; i--) {
+                    if (dp[i][w] !== dp[i-1][w]) {
+                        selectedItems.push(i - 1);
+                        w -= items[i-1].weight;
+                    }
+                }
+                
+                return {
+                    max_value: dp[n][capacity],
+                    selected_indices: selectedItems.reverse()
+                };
+            }
+            
+            function displayResults(items, result) {
+                // Update max value
+                document.getElementById('max-value').textContent = result.max_value;
+                
+                // Calculate total weight
+                let totalWeight = 0;
+                for (const index of result.selected_indices) {
+                    totalWeight += items[index].weight;
+                }
+                document.getElementById('total-weight').textContent = totalWeight;
+                
+                // Show result
+                document.getElementById('result').style.display = 'block';
+                
+                // Update results table
+                const resultsBody = document.getElementById('results-body');
+                resultsBody.innerHTML = '';
+                
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    const isSelected = result.selected_indices.includes(i);
+                    
+                    const row = document.createElement('tr');
+                    if (isSelected) {
+                        row.classList.add('selected');
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>${item.weight}</td>
+                        <td>${item.value}</td>
+                        <td>${isSelected ? '✓' : '✗'}</td>
+                    `;
+                    
+                    resultsBody.appendChild(row);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
