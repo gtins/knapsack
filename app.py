@@ -10,7 +10,7 @@ class RecursiveStrategy(KnapsackStrategy):
         # inicializa cache 
         self.memo = {}
         result = self._solve_recursive(items, capacity, 0)
-        # retorno do maximo e minimo
+        # retorna o valor máximo e os itens selecionados
         return {
             'max_value': result[0],
             'selected_items': self._get_selected_items(items, capacity, 0)
