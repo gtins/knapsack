@@ -1,41 +1,41 @@
 from flask import Flask, request, render_template, jsonify
 
-# Strategy Pattern Implementation
+# Strategy 
 class KnapsackStrategy:
     def solve(self, items, capacity):
         pass
 
 class RecursiveStrategy(KnapsackStrategy):
     def solve(self, items, capacity):
-        # Initialize memoization cache
+        # inicializa cache 
         self.memo = {}
         result = self._solve_recursive(items, capacity, 0)
-        # Return both max value and selected items
+        # retorno do maximo e minimo
         return {
             'max_value': result[0],
             'selected_items': self._get_selected_items(items, capacity, 0)
         }
     
     def _solve_recursive(self, items, capacity, index):
-        # Base case: no items left or no capacity
+        # Base case: sem itens ou sem espaço
         if index == len(items) or capacity == 0:
             return 0, []
         
-        # Check if we've already solved this subproblem
+        # verifica se ja foi resolvido na memoria
         if (capacity, index) in self.memo:
             return self.memo[(capacity, index)]
         
-        # If current item is too heavy, skip it
+        # se o item é muito pesado, pula
         if items[index]['weight'] > capacity:
             result = self._solve_recursive(items, capacity, index + 1)
             self.memo[(capacity, index)] = result
             return result
         
-        # Two choices: include current item or skip it
-        # Choice 1: Skip current item
+        # duas escolhas: inclui ou pula
+        # 1: pula item
         skip_value, skip_items = self._solve_recursive(items, capacity, index + 1)
         
-        # Choice 2: Include current item
+        # 2: inclui 
         include_value, include_items = self._solve_recursive(
             items, 
             capacity - items[index]['weight'], 
@@ -44,7 +44,7 @@ class RecursiveStrategy(KnapsackStrategy):
         include_value += items[index]['value']
         include_items = include_items + [index]
         
-        # Take the better choice
+        # escolha
         if include_value > skip_value:
             result = (include_value, include_items)
         else:
@@ -60,7 +60,7 @@ class RecursiveStrategy(KnapsackStrategy):
         if items[index]['weight'] > capacity:
             return self._get_selected_items(items, capacity, index + 1)
         
-        # Check if we should include this item
+        # verifica se é valido incluir item
         include_value = 0
         if capacity >= items[index]['weight']:
             next_value, _ = self._solve_recursive(
@@ -81,17 +81,16 @@ class RecursiveStrategy(KnapsackStrategy):
         else:
             return self._get_selected_items(items, capacity, index + 1)
 
-# Factory for creating strategies
+# "fabrica" do strategy
 class KnapsackStrategyFactory:
     @staticmethod
     def get_strategy(strategy_name):
         if strategy_name == "recursive":
             return RecursiveStrategy()
-        # You can add more strategies here in the future
         else:
             raise ValueError(f"Unknown strategy: {strategy_name}")
 
-# Flask application
+# Flask 
 app = Flask(__name__)
 
 @app.route('/')
@@ -105,13 +104,13 @@ def solve():
     capacity = data.get('capacity', 0)
     strategy_name = data.get('strategy', 'recursive')
     
-    # Get the appropriate strategy
+    # rota certa
     strategy = KnapsackStrategyFactory.get_strategy(strategy_name)
     
-    # Solve the problem
+    # resolucao
     result = strategy.solve(items, capacity)
     
-    # Format the response
+    # resposta
     selected_indices = result['selected_items']
     selected_items = [items[i] for i in selected_indices]
     
